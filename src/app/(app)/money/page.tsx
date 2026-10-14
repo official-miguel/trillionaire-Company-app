@@ -1,4 +1,5 @@
 import Link from "next/link";
+import { LedgerSwitch } from "@/components/LedgerSwitch";
 import { Badge, Card, Empty, Money, PageHeader } from "@/components/ui";
 import { can, getLedgerLines, getPots, getViewer } from "@/lib/data/queries";
 import type { LineType } from "@/lib/data/types";
@@ -41,21 +42,7 @@ export default async function MoneyPage({ searchParams }: { searchParams: Promis
     <>
       <PageHeader title="Money" subtitle="Every shilling is a line in a ledger. Nothing is deleted: a change keeps the old value, who made it and why." />
 
-      {viewer.ledgers.length > 1 && (
-        <div className="mb-5 inline-flex rounded-full border border-line bg-white p-1" role="tablist">
-          {viewer.ledgers.map((id) => (
-            <Link
-              key={id}
-              href={`/money?ledger=${id}`}
-              role="tab"
-              aria-selected={id === visible}
-              className={`rounded-full px-4 py-2 text-sm font-medium ${id === visible ? "bg-ink text-white" : "text-ink/70 hover:text-ink"}`}
-            >
-              {LEDGER_NAMES[id] ?? id}
-            </Link>
-          ))}
-        </div>
-      )}
+      {viewer.ledgers.length > 1 && <LedgerSwitch key={visible} ledgers={viewer.ledgers} current={visible} names={LEDGER_NAMES} />}
 
       <div className="mb-5 grid grid-cols-2 gap-3 sm:grid-cols-3 lg:grid-cols-5">
         {ledgerPots.map((p) => (
