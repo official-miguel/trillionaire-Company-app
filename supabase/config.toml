@@ -1,0 +1,6 @@
+# Only what this project needs from the Supabase CLI.
+project_id = "edtuvlmdhhaidgwmxdtg"
+
+[functions.send-reminders]
+# Called by pg_cron with its own secret header, not a signed-in user.
+verify_jwt = false
