@@ -50,3 +50,8 @@ body {
 .tabular {
   font-variant-numeric: tabular-nums;
 }
+
+/* The intro plays once per device (see IntroLoader). */
+html[data-intro-seen] .intro-loader {
+  display: none;
+}

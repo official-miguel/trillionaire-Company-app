@@ -30,7 +30,15 @@ export const viewport: Viewport = {
 
 export default function RootLayout({ children }: Readonly<{ children: React.ReactNode }>) {
   return (
-    <html lang="en" className={`${inter.variable} ${grandHotel.variable} h-full antialiased`}>
+    <html lang="en" className={`${inter.variable} ${grandHotel.variable} h-full antialiased`} suppressHydrationWarning>
+      <head>
+        {/* Before the first paint: skip the intro if this device has seen it. */}
+        <script
+          dangerouslySetInnerHTML={{
+            __html: "try{if(localStorage.getItem('td-intro-seen')==='1')document.documentElement.setAttribute('data-intro-seen','')}catch(e){}",
+          }}
+        />
+      </head>
       <body className="min-h-full bg-background text-foreground">
         <IntroLoader />
         <ServiceWorker />

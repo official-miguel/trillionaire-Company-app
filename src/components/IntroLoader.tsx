@@ -2,6 +2,11 @@
 
 import { useEffect, useState } from "react";
 
+// The intro plays only the first time the app is opened on a device. The
+// layout's head script hides it before the first paint once it has been seen
+// (html[data-intro-seen]), so later opens go straight to the app.
+export const INTRO_SEEN_KEY = "td-intro-seen";
+
 export default function IntroLoader() {
   const [mounted, setMounted] = useState(true);
   const [lidOpen, setLidOpen] = useState(false);
@@ -11,12 +16,24 @@ export default function IntroLoader() {
   useEffect(() => {
     if (typeof window === "undefined") return;
 
+    let seen = false;
+    try {
+      seen = localStorage.getItem(INTRO_SEEN_KEY) === "1";
+    } catch {}
+    if (seen) {
+      setMounted(false);
+      return;
+    }
+
     const reduceMotion = window.matchMedia("(prefers-reduced-motion: reduce)").matches;
 
     document.body.style.overflow = "hidden";
 
     const finish = () => {
       document.body.style.overflow = "";
+      try {
+        localStorage.setItem(INTRO_SEEN_KEY, "1");
+      } catch {}
     };
 
     if (reduceMotion) {
@@ -54,7 +71,7 @@ export default function IntroLoader() {
     <div
       role="presentation"
       aria-hidden="true"
-      className="fixed inset-0 z-[999] flex items-center justify-center bg-ink transition-opacity duration-300 ease-out"
+      className="intro-loader fixed inset-0 z-[999] flex items-center justify-center bg-ink transition-opacity duration-300 ease-out"
       style={{ opacity: leaving ? 0 : 1 }}
     >
       <div style={{ perspective: "1000px" }}>
