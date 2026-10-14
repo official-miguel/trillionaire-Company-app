@@ -38,10 +38,13 @@ export const getViewer = cache(async (): Promise<Viewer> => {
   } = await sb.auth.getUser();
   if (!user) redirect("/login");
 
-  const [{ data: person }, { data: memberships }, { data: perms }] = await Promise.all([
+  // Everything about this person in one round trip (asked at the same time).
+  const [{ data: person }, { data: memberships }, { data: perms }, { data: ledgers }, bidiiSuperAdmin] = await Promise.all([
     sb.from("people").select("*").eq("id", user.id).single(),
     sb.from("memberships").select("ledger_id, role").eq("person_id", user.id),
     sb.from("permissions").select("ledger_id, permission, limit_kes").eq("person_id", user.id),
+    sb.from("ledgers").select("id"), // RLS returns only visible ledgers
+    hasBidiiAccount(user.email ?? ""),
   ]);
   if (!person) redirect("/login?error=no-profile");
   if (!person.active) {
@@ -50,7 +53,6 @@ export const getViewer = cache(async (): Promise<Viewer> => {
   }
 
   const isClassA = (memberships ?? []).some((m) => m.role === "td_cofounder");
-  const { data: ledgers } = await sb.from("ledgers").select("id"); // RLS returns only visible ledgers
   const permissions: Record<string, Permission[]> = {};
   for (const p of perms ?? []) (permissions[p.ledger_id] ??= []).push(p.permission);
   const limits = (perms ?? []).filter((p) => p.permission === "approver" && p.limit_kes != null).map((p) => Number(p.limit_kes));
@@ -66,7 +68,7 @@ export const getViewer = cache(async (): Promise<Viewer> => {
     permissions,
     approverLimit: limits.length ? Math.max(...limits) : null,
     // Bidii decides who is a super admin; the button shows only if it says so.
-    bidiiSuperAdmin: await hasBidiiAccount(person.email),
+    bidiiSuperAdmin,
     mustChangePassword: person.must_change_password,
     isOwner: person.is_owner === true,
   };

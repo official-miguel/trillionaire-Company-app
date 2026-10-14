@@ -55,3 +55,14 @@ body {
 html[data-intro-seen] .intro-loader {
   display: none;
 }
+
+/* Taps act at once on phones: no wait for a possible double-tap zoom, and no
+   grey flash over what was tapped. */
+a,
+button,
+summary,
+label,
+[role="tab"] {
+  touch-action: manipulation;
+  -webkit-tap-highlight-color: transparent;
+}

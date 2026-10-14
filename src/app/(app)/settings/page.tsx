@@ -3,6 +3,7 @@ import { can, getRecentChanges, getSettings, getViewer } from "@/lib/data/querie
 import { POT_LABELS, type PotKey } from "@/lib/money/monthEnd";
 import { kes, shortDate } from "@/lib/format";
 import { saveSettings } from "./actions";
+import { SubmitButton } from "@/components/SubmitButton";
 
 export const metadata = { title: "Settings" };
 
@@ -177,7 +178,7 @@ function Reason() {
         <span className="font-medium">Reason for the change</span>
         <input name="reason" required placeholder="Everyone is told what changed and why" className="rounded-full border border-line bg-white px-4 py-2.5 text-base outline-none focus:border-lime" />
       </label>
-      <button className="rounded-full bg-lime px-6 py-2.5 text-sm font-semibold text-ink hover:brightness-95">Save changes</button>
+      <SubmitButton pending="Saving…" className="rounded-full bg-lime px-6 py-2.5 text-sm font-semibold text-ink hover:brightness-95">Save changes</SubmitButton>
     </div>
   );
 }

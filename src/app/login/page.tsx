@@ -4,6 +4,7 @@ import { ClearOfflinePages, InstallApp } from "@/components/InstallApp";
 import { isDemo } from "@/lib/demo";
 import { supabaseServer } from "@/lib/supabase/server";
 import { adoptBidiiPassword } from "@/lib/people";
+import { SubmitButton } from "@/components/SubmitButton";
 
 export const metadata = { title: "Sign in" };
 
@@ -53,7 +54,7 @@ export default async function LoginPage({ searchParams }: { searchParams: Promis
             Password
             <input name="password" type="password" required autoComplete="current-password" className="rounded-full border border-line px-4 py-3 text-base font-normal outline-none focus:border-lime" />
           </label>
-          <button className="mt-2 rounded-full bg-lime px-5 py-3 text-sm font-semibold text-ink transition hover:brightness-95">Sign in</button>
+          <SubmitButton pending="Signing in…" className="mt-2 rounded-full bg-lime px-5 py-3 text-sm font-semibold text-ink hover:brightness-95">Sign in</SubmitButton>
         </form>
         <InstallApp className="mt-4" />
         <ClearOfflinePages />

@@ -4,6 +4,7 @@ import { getViewer } from "@/lib/data/queries";
 import { isDemo } from "@/lib/demo";
 import { supabaseServer } from "@/lib/supabase/server";
 import { supabaseAdmin } from "@/lib/supabase/admin";
+import { SubmitButton } from "@/components/SubmitButton";
 
 export const metadata = { title: "Choose your password" };
 
@@ -58,7 +59,7 @@ export default async function ChangePasswordPage({ searchParams }: { searchParam
             Type it again
             <input name="confirm" type="password" required minLength={8} autoComplete="new-password" className={field} />
           </label>
-          <button className="mt-2 rounded-full bg-lime px-5 py-3 text-sm font-semibold text-ink hover:brightness-95">Save and continue</button>
+          <SubmitButton pending="Saving…" className="mt-2 rounded-full bg-lime px-5 py-3 text-sm font-semibold text-ink hover:brightness-95">Save and continue</SubmitButton>
         </form>
       </div>
     </main>

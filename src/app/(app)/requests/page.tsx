@@ -3,6 +3,7 @@ import { getApprovers, getPots, getRequests, getViewer } from "@/lib/data/querie
 import { approvalNeed } from "@/lib/money/approvals";
 import { daysUntil, shortDate, todayIso } from "@/lib/format";
 import { askForMoney, decide } from "./actions";
+import { SubmitButton } from "@/components/SubmitButton";
 
 export const metadata = { title: "Requests" };
 
@@ -65,7 +66,7 @@ export default async function RequestsPage({ searchParams }: { searchParams: Pro
               <input type="checkbox" name="personal" className="h-4 w-4 accent-[#32cd32]" />
               This is a personal cost (it will be taken back from my next pay)
             </label>
-            <button className="rounded-full bg-lime px-5 py-3 text-sm font-semibold text-ink transition hover:brightness-95">Send request</button>
+            <SubmitButton pending="Sending…">Send request</SubmitButton>
             <p className="text-xs text-muted">{sample.summary} Above KES 20,000, or from the reserve, two people approve.</p>
           </form>
         </Card>
@@ -88,12 +89,12 @@ export default async function RequestsPage({ searchParams }: { searchParams: Pro
                     <p className="mt-2 text-xs text-muted">{approvalNeed(needFacts(r, approvers), approvers).summary}</p>
                     <form action={decide} className="mt-3 flex gap-2">
                       <input type="hidden" name="id" value={r.id} />
-                      <button name="decision" value="approve" className="rounded-full bg-lime px-4 py-2 text-sm font-semibold text-ink hover:brightness-95">
+                      <SubmitButton name="decision" value="approve" pending="Approving…" className="rounded-full bg-lime px-4 py-2 text-sm font-semibold text-ink hover:brightness-95">
                         Approve
-                      </button>
-                      <button name="decision" value="reject" className="rounded-full border border-line px-4 py-2 text-sm font-semibold hover:border-ink/30">
+                      </SubmitButton>
+                      <SubmitButton name="decision" value="reject" pending="Saving…" className="rounded-full border border-line px-4 py-2 text-sm font-semibold hover:border-ink/30">
                         Don&apos;t approve
-                      </button>
+                      </SubmitButton>
                     </form>
                   </li>
                 ))}

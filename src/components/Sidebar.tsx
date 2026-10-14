@@ -2,7 +2,7 @@
 
 import Link from "next/link";
 import { usePathname } from "next/navigation";
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import { Logo } from "./Logo";
 import { InstallApp } from "./InstallApp";
 import { turnOffPush } from "@/lib/calendar/push";
@@ -43,7 +43,11 @@ export interface SidebarProps {
 export function Sidebar({ name, roleLabel, bidiiSuperAdmin, peopleAdmin, demo, signOut }: SidebarProps) {
   const pathname = usePathname();
   const [open, setOpen] = useState(false);
-  const active = (href: string) => (href === "/" ? pathname === "/" : pathname.startsWith(href));
+  // The tapped item lights up at once, before the page has finished loading.
+  const [tapped, setTapped] = useState<string | null>(null);
+  useEffect(() => setTapped(null), [pathname]);
+  const isAt = (href: string) => (href === "/" ? pathname === "/" : pathname.startsWith(href));
+  const active = (href: string) => (tapped ? tapped === href : isAt(href));
 
   const nav = (
     <nav className="flex flex-col gap-1" aria-label="Main">
@@ -51,7 +55,10 @@ export function Sidebar({ name, roleLabel, bidiiSuperAdmin, peopleAdmin, demo, s
         <Link
           key={href}
           href={href}
-          onClick={() => setOpen(false)}
+          onClick={() => {
+            setOpen(false);
+            if (!isAt(href)) setTapped(href);
+          }}
           aria-current={active(href) ? "page" : undefined}
           className={`flex items-center gap-3 rounded-full px-4 py-2.5 text-[15px] transition-colors ${
             active(href) ? "bg-lime-soft font-semibold text-ink" : "text-ink/65 hover:bg-surface hover:text-ink"

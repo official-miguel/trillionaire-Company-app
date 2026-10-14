@@ -6,6 +6,7 @@ import { can, getPots, getViewer } from "@/lib/data/queries";
 import { isDemo } from "@/lib/demo";
 import { supabaseServer } from "@/lib/supabase/server";
 import { todayIso } from "@/lib/format";
+import { SubmitButton } from "@/components/SubmitButton";
 
 export const metadata = { title: "Add a ledger line" };
 
@@ -94,7 +95,7 @@ export default async function NewLinePage({ searchParams }: { searchParams: Prom
             </select>
           </label>
           <div className="mt-2 flex gap-3">
-            <button className="rounded-full bg-lime px-5 py-3 text-sm font-semibold text-ink hover:brightness-95">Save as draft</button>
+            <SubmitButton pending="Saving…">Save as draft</SubmitButton>
             <Link href={`/money?ledger=${ledgerId}`} className="rounded-full border border-line px-5 py-3 text-sm font-semibold">
               Cancel
             </Link>

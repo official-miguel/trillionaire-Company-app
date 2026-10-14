@@ -6,6 +6,7 @@ import type { Permission, Role } from "@/lib/data/types";
 import { isDemo } from "@/lib/demo";
 import { listPeople, type PersonRow } from "@/lib/people";
 import { addPersonAction, resetPasswordAction, setActiveAction, setRolesAction } from "./actions";
+import { SubmitButton } from "@/components/SubmitButton";
 
 export const metadata = { title: "People" };
 
@@ -99,7 +100,7 @@ export default async function PeoplePage({ searchParams }: { searchParams: Promi
               <input name="temporary_password" type="text" required minLength={8} autoComplete="off" className={field} />
               <span className="text-xs font-normal text-muted">At least 8 characters. Tell them in person or by phone; they must change it when they first sign in.</span>
             </label>
-            <button className="rounded-full bg-lime px-5 py-3 text-sm font-semibold text-ink hover:brightness-95">Add person</button>
+            <SubmitButton pending="Adding…">Add person</SubmitButton>
           </form>
         </Card>
 
@@ -121,7 +122,7 @@ export default async function PeoplePage({ searchParams }: { searchParams: Promi
                     <form action={setActiveAction}>
                       <input type="hidden" name="id" value={p.id} />
                       <input type="hidden" name="active" value={String(!p.active)} />
-                      <button className="rounded-full border border-line px-4 py-1.5 text-sm font-medium hover:border-ink/30">{p.active ? "Switch off" : "Switch on"}</button>
+                      <SubmitButton pending="Saving…" className="rounded-full border border-line px-4 py-1.5 text-sm font-medium hover:border-ink/30">{p.active ? "Switch off" : "Switch on"}</SubmitButton>
                     </form>
                   )}
                 </div>
@@ -154,7 +155,7 @@ export default async function PeoplePage({ searchParams }: { searchParams: Promi
                         Approval limit (KES)
                         <input name="approver_limit" type="number" min="0" step="1000" defaultValue={p.permissions.find((x) => x.permission === "approver")?.limitKes ?? 20000} className="w-32 rounded-full border border-line bg-white px-3 py-1.5" />
                       </label>
-                      <button className="mt-1 self-start rounded-full bg-ink px-4 py-2 text-sm font-semibold text-white">Save roles</button>
+                      <SubmitButton pending="Saving…" className="mt-1 self-start rounded-full bg-ink px-4 py-2 text-sm font-semibold text-white">Save roles</SubmitButton>
                     </form>
                   </details>
                 )}
@@ -164,7 +165,7 @@ export default async function PeoplePage({ searchParams }: { searchParams: Promi
                     <form action={resetPasswordAction} className="mt-2 flex flex-wrap gap-2">
                       <input type="hidden" name="id" value={p.id} />
                       <input name="temporary_password" required minLength={8} placeholder="New temporary password" autoComplete="off" className={`${field} flex-1 py-2`} />
-                      <button className="rounded-full bg-ink px-4 py-2 text-sm font-semibold text-white">Reset</button>
+                      <SubmitButton pending="Resetting…" className="rounded-full bg-ink px-4 py-2 text-sm font-semibold text-white">Reset</SubmitButton>
                     </form>
                   </details>
                 )}
