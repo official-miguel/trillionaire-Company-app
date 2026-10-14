@@ -1,5 +1,5 @@
 import { describe, expect, it } from "vitest";
-import { parseQuickAdd } from "./quickAdd";
+import { defaultReminders, parseQuickAdd } from "./quickAdd";
 import { occurrences } from "./recurrence";
 import { placeDay } from "./layout";
 import { monthGrid, startOfWeek } from "./dates";
@@ -29,7 +29,7 @@ describe("quick add", () => {
 
   it("understands Swahili for today and tomorrow", () => {
     expect(parseQuickAdd("Kesho 9am call Romeo", NOW).start.getTime()).toBe(at(15, 9));
-    expect(parseQuickAdd("Kesho 9am call Romeo", NOW).title).toBe("call Romeo");
+    expect(parseQuickAdd("Kesho 9am call Romeo", NOW).title).toBe("Call Romeo");
     expect(parseQuickAdd("leo 4pm gym", NOW).start.getTime()).toBe(at(14, 16));
   });
 
@@ -47,7 +47,7 @@ describe("quick add", () => {
   it("reads repeats", () => {
     const p = parseQuickAdd("every tuesday 7am gym", NOW);
     expect(p.repeat).toBe("weekly");
-    expect(p.title).toBe("gym");
+    expect(p.title).toBe("Gym");
     expect(p.start.getDay()).toBe(2);
     expect(p.start.getTime()).toBe(at(20, 7));
     expect(parseQuickAdd("standup weekdays 9:30am", NOW).repeat).toBe("weekdays");
@@ -75,6 +75,49 @@ describe("quick add", () => {
     const p = parseQuickAdd("Think about pricing", NOW);
     expect(p.title).toBe("Think about pricing");
     expect(p.allDay).toBe(true);
+  });
+});
+
+describe("quick add: what people really type", () => {
+  // Wednesday 14 October 2026, 18:15 — the sentences from the first real test.
+  const EVE = new Date(2026, 9, 14, 18, 15);
+
+  it.each([
+    ["I am going to juja at 6.17 pm", "I am going to juja", 18, 17],
+    ["Alarm at 6.22", "Alarm", 18, 22],
+    ["Add test 2 at 6.25 pm", "Add test 2", 18, 25],
+    ["Alarm at 6.20", "Alarm", 18, 20],
+    ["Board call 18.30", "Board call", 18, 30],
+  ])("reads dotted times: %s", (text, title, h, min) => {
+    const p = parseQuickAdd(text, EVE);
+    expect(p.title).toBe(title);
+    expect(p.allDay).toBe(false);
+    expect([p.start.getDate(), p.start.getHours(), p.start.getMinutes()]).toEqual([14, h, min]);
+  });
+
+  it("reads 'in ten minutes' and takes 'notify me to' out of the title", () => {
+    const p = parseQuickAdd("In ten minutes notify me to sleep", EVE);
+    expect(p.title).toBe("Sleep");
+    expect([p.start.getHours(), p.start.getMinutes()]).toEqual([18, 25]);
+    expect(parseQuickAdd("call mum in 2 hours", EVE).start.getHours()).toBe(20);
+    expect(parseQuickAdd("Stretch in half an hour", EVE).start.getMinutes()).toBe(45);
+  });
+
+  it("reads the reminder from the sentence", () => {
+    expect(parseQuickAdd("Add test 2 at 6.25 reminder at the start", EVE)).toMatchObject({ title: "Add test 2", reminders: [0] });
+    expect(parseQuickAdd("Meeting 9pm remind me 30 minutes before", EVE)).toMatchObject({ title: "Meeting", reminders: [30] });
+    expect(parseQuickAdd("Quiet time 9pm no reminder", EVE).reminders).toEqual([]);
+    expect(parseQuickAdd("Dinner 8pm", EVE).reminders).toBeNull();
+  });
+
+  it("keeps 'set an alarm for' simple", () => {
+    expect(parseQuickAdd("set an alarm for 6.40", EVE)).toMatchObject({ title: "Alarm", allDay: false });
+  });
+
+  it("reminds at the start for something soon, and 10 minutes before too when there is time", () => {
+    expect(defaultReminders(new Date(2026, 9, 14, 18, 22), false, EVE)).toEqual([0]);
+    expect(defaultReminders(new Date(2026, 9, 14, 19, 0), false, EVE)).toEqual([10, 0]);
+    expect(defaultReminders(new Date(2026, 9, 15), true, EVE)).toEqual([]);
   });
 });
 

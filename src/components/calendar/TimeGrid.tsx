@@ -12,6 +12,7 @@ export function TimeGrid({
   occurrences,
   todos,
   names,
+  focusTime,
   onPickSlot,
   onOpen,
   onToggleTodo,
@@ -20,12 +21,15 @@ export function TimeGrid({
   occurrences: Occurrence[];
   todos: Todo[];
   names: Record<string, string>;
+  /** Scroll here (just after adding something). */
+  focusTime?: Date | null;
   onPickSlot: (start: Date) => void;
   onOpen: (o: Occurrence) => void;
   onToggleTodo: (t: Todo) => void;
 }) {
   const scroller = useRef<HTMLDivElement>(null);
   const [now, setNow] = useState(() => new Date());
+  const [allDayOpen, setAllDayOpen] = useState(false);
 
   useEffect(() => {
     const id = setInterval(() => setNow(new Date()), 60_000);
@@ -37,6 +41,10 @@ export function TimeGrid({
     const h = days.some((d) => sameDay(d, new Date())) ? Math.max(7, new Date().getHours() - 1) : 7;
     scroller.current?.scrollTo({ top: h * HOUR });
   }, [days]);
+
+  useEffect(() => {
+    if (focusTime) scroller.current?.scrollTo({ top: Math.max(0, (minutesIntoDay(focusTime) / 60 - 1) * HOUR), behavior: "smooth" });
+  }, [focusTime]);
 
   const allDay = occurrences.filter((o) => o.event.allDay || o.end.getTime() - o.start.getTime() >= 86_400_000);
   // Tasks with a due day but no time sit in the all-day row.
@@ -69,6 +77,7 @@ export function TimeGrid({
             <div key={d.toISOString()} className="flex min-w-0 flex-col gap-1 px-0.5">
               {allDay
                 .filter((o) => o.start < addDays(startOfDay(d), 1) && o.end > startOfDay(d))
+                .filter((_, i, list) => allDayOpen || list.length <= 3 || i < 2)
                 .map((o) => (
                   <button
                     key={o.key}
@@ -79,6 +88,14 @@ export function TimeGrid({
                     {o.event.title}
                   </button>
                 ))}
+              {(() => {
+                const n = allDay.filter((o) => o.start < addDays(startOfDay(d), 1) && o.end > startOfDay(d)).length;
+                return n > 3 ? (
+                  <button onClick={() => setAllDayOpen((v) => !v)} className="rounded-md px-1.5 py-0.5 text-left text-xs font-medium text-muted hover:text-ink">
+                    {allDayOpen ? "Show less" : `+ ${n - 2} more`}
+                  </button>
+                ) : null;
+              })()}
               {dueTasks
                 .filter((t) => t.dueOn === dayKey(d))
                 .map((t) => (
@@ -96,7 +113,7 @@ export function TimeGrid({
       )}
 
       {/* Hours */}
-      <div ref={scroller} className="relative min-h-0 flex-1 overflow-y-auto">
+      <div ref={scroller} className="relative min-h-0 flex-1 touch-pan-y overflow-y-auto overscroll-contain scroll-smooth">
         <div className="grid" style={{ gridTemplateColumns: cols, height: 24 * HOUR }}>
           <div className="relative">
             {Array.from({ length: 23 }, (_, i) => (

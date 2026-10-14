@@ -4,7 +4,6 @@ import { useEffect, useRef, useState } from "react";
 import { calendarInfo, type CalendarKind, type CalEvent, type Repeat } from "@/lib/calendar/types";
 import { REPEAT_LABELS } from "@/lib/calendar/recurrence";
 import { addDays, dayKey, startOfDay, toLocalInput } from "@/lib/calendar/dates";
-import { CloseIcon } from "@/components/icons";
 
 export interface Person {
   id: string;
@@ -16,6 +15,7 @@ export interface Person {
 const REMINDERS: { label: string; value: number[] }[] = [
   { label: "No reminder", value: [] },
   { label: "At the start", value: [0] },
+  { label: "10 minutes before and at the start", value: [10, 0] },
   { label: "10 minutes before", value: [10] },
   { label: "30 minutes before", value: [30] },
   { label: "1 hour before", value: [60] },
@@ -84,12 +84,22 @@ export function EventSheet({
     <div className="fixed inset-0 z-50 flex items-end justify-center sm:items-center" role="dialog" aria-modal="true" aria-label={isNew ? "New event" : "Edit event"}>
       <button className="absolute inset-0 bg-ink/25" aria-label="Close" onClick={onClose} />
       <form
-        className="relative max-h-[92vh] w-full overflow-y-auto rounded-t-[1.75rem] bg-white p-5 shadow-2xl sm:max-w-lg sm:rounded-[1.75rem] sm:p-6"
+        className="relative max-h-[88dvh] w-full overflow-y-auto overscroll-contain rounded-t-[1.75rem] bg-white px-5 pb-8 shadow-2xl sm:max-w-lg sm:rounded-[1.75rem] sm:px-6 sm:pb-6"
         onSubmit={(ev) => {
           ev.preventDefault();
           if (!readOnly) onSave({ ...e, title: e.title.trim() || "Untitled", invitees: shared ? e.invitees.filter((id) => invitable.some((p) => p.id === id)) : [] });
         }}
       >
+        {/* Stays at the top while the form scrolls, so Save is always one tap away. */}
+        <div className="sticky top-0 z-10 -mx-5 mb-4 border-b border-line bg-white px-5 pb-3 pt-2 sm:-mx-6 sm:px-6 sm:pt-4">
+          <span className="mx-auto mb-2 block h-1 w-10 rounded-full bg-line sm:hidden" aria-hidden />
+          <div className="flex items-center justify-between gap-3">
+            <button type="button" onClick={onClose} className="rounded-full px-3 py-1.5 text-sm font-medium text-ink/70 hover:bg-surface">
+              Cancel
+            </button>
+            {!readOnly && <button className="rounded-full bg-lime px-5 py-2 text-sm font-semibold text-ink hover:brightness-95">{isNew ? "Add" : "Save"}</button>}
+          </div>
+        </div>
         <div className="mb-4 flex items-start justify-between gap-3">
           <input
             ref={titleRef}
@@ -100,9 +110,6 @@ export function EventSheet({
             className="w-full border-0 bg-transparent text-xl font-semibold outline-none placeholder:text-ink/30"
             aria-label="Title"
           />
-          <button type="button" onClick={onClose} className="rounded-full p-1.5 text-ink/60 hover:bg-surface" aria-label="Close">
-            <CloseIcon className="h-5 w-5" />
-          </button>
         </div>
 
         {readOnly && <p className="mb-4 rounded-2xl bg-surface px-3 py-2 text-sm text-muted">Shared with you by {people.find((p) => p.id === e.ownerId)?.name ?? "someone"}. Only they can change it.</p>}
@@ -240,17 +247,10 @@ export function EventSheet({
           )}
         </fieldset>
 
-        {!readOnly && (
-          <div className="mt-6 flex items-center justify-between gap-3">
-            {!isNew ? (
-              <button type="button" onClick={() => onDelete(e)} className="rounded-full px-4 py-2.5 text-sm font-semibold text-danger hover:bg-[#fdecea]">
-                Delete
-              </button>
-            ) : (
-              <span />
-            )}
-            <button className="rounded-full bg-lime px-6 py-2.5 text-sm font-semibold text-ink hover:brightness-95">{isNew ? "Add to calendar" : "Save"}</button>
-          </div>
+        {!readOnly && !isNew && (
+          <button type="button" onClick={() => onDelete(e)} className="mt-6 rounded-full px-4 py-2.5 text-sm font-semibold text-danger hover:bg-[#fdecea]">
+            Delete this event
+          </button>
         )}
       </form>
     </div>

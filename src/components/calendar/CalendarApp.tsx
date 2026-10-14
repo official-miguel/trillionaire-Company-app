@@ -3,7 +3,7 @@
 import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import { addDays, addMonths, dayKey, startOfDay, startOfMonth, startOfWeek } from "@/lib/calendar/dates";
 import { occurrences } from "@/lib/calendar/recurrence";
-import { parseQuickAdd } from "@/lib/calendar/quickAdd";
+import { defaultReminders, parseQuickAdd } from "@/lib/calendar/quickAdd";
 import { nextFreeSlot } from "@/lib/calendar/plan";
 import { calendarInfo, type CalendarKind, type CalEvent, type Occurrence, type Todo } from "@/lib/calendar/types";
 import * as store from "@/lib/calendar/store";
@@ -67,6 +67,8 @@ export function CalendarApp({
   const [mode, setMode] = useState<"event" | "todo">("event");
   const [forWhom, setForWhom] = useState<string>(me.id);
   const [hidden, setHidden] = useState<CalendarKind[]>([]);
+  // After adding, the day view scrolls to the new event.
+  const [focusTime, setFocusTime] = useState<Date | null>(null);
   const [sync, setSync] = useState<store.SyncState>("synced");
   const [example, setExample] = useState(0);
   const [push, setPush] = useState<PushStatus | "busy">("off");
@@ -175,7 +177,7 @@ export function CalendarApp({
       notes: "",
       repeat: "none",
       repeatUntil: null,
-      reminders: [10],
+      reminders: defaultReminders(start, false),
       invitees: [],
       updatedAt: new Date().toISOString(),
       deletedAt: null,
@@ -225,10 +227,12 @@ export function CalendarApp({
           allDay: parsed.allDay,
           repeat: parsed.repeat,
           calendar: parsed.calendar ?? "personal",
-          reminders: parsed.allDay ? [] : [10],
+          reminders: parsed.reminders ?? defaultReminders(parsed.start, parsed.allDay),
         }),
       );
       setCursor(startOfDay(parsed.start));
+      setFocusTime(parsed.allDay ? null : parsed.start);
+      if (view === "month" || view === "agenda") setView("day");
     }
     setText("");
   };
@@ -376,6 +380,7 @@ export function CalendarApp({
 
           {(view === "day" || view === "week") && (
             <TimeGrid
+              focusTime={focusTime}
               days={range.days}
               occurrences={occ}
               todos={myTodos}
@@ -457,6 +462,21 @@ export function CalendarApp({
           <p className="hidden lg:block">Keys: t today · d w m a views · n type · ← → move</p>
         </section>
       </aside>
+
+      {/* Phones: a big add button, always within thumb reach. */}
+      {!editing && (
+        <button
+          onClick={() => {
+            const n = new Date();
+            const start = new Date(n.getFullYear(), n.getMonth(), n.getDate(), n.getHours(), n.getMinutes() < 30 ? 30 : 60);
+            setEditing({ event: blank(start), isNew: true });
+          }}
+          className="fixed bottom-5 right-5 z-40 flex h-14 w-14 items-center justify-center rounded-full bg-lime text-3xl font-light text-ink shadow-[0_8px_24px_rgba(0,0,0,0.18)] active:scale-95 lg:hidden"
+          aria-label="Add an event"
+        >
+          +
+        </button>
+      )}
 
       {editing && (
         <EventSheet
