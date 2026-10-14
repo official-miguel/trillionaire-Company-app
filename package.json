@@ -12,7 +12,8 @@
     "dev:demo": "cross-env DEMO_MODE=1 next dev -p 3100",
     "create-owner": "node scripts/create-owner.mjs",
     "preview:prod": "cross-env NEXT_DIST_DIR=.next-prod next build && cross-env NEXT_DIST_DIR=.next-prod next start -p 3102",
-    "seed-people": "node scripts/seed-people.mjs"
+    "seed-people": "node scripts/seed-people.mjs",
+    "reset-passwords": "node scripts/reset-passwords.mjs"
   },
   "dependencies": {
     "@supabase/ssr": "^0.7.0",

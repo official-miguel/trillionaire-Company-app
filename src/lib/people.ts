@@ -155,12 +155,20 @@ export async function addPerson(actorId: string, p: NewPerson): Promise<{ error?
  */
 export async function adoptBidiiPassword(email: string, password: string): Promise<boolean> {
   const sb = supabaseAdmin();
+  // Each step logs why it stopped (never the password), so a refused
+  // sign-in can be traced in the server logs.
+  const log = (step: string) => console.info(`[sign-in] Bidii password for ${email}: ${step}`);
   const { data: person } = await sb.from("people").select("id, active, must_change_password").eq("email", email.trim().toLowerCase()).maybeSingle();
-  if (!person || !person.active || !person.must_change_password) return false;
-  if (!(await checkBidiiPassword(email, password))) return false;
+  if (!person) return (log("no such person in this app"), false);
+  if (!person.active) return (log("person is switched off"), false);
+  if (!person.must_change_password) return (log("already has a password here"), false);
+
+  const answer = await checkBidiiPassword(email, password);
+  if (answer !== "ok") return (log(answer), false);
 
   const { error } = await sb.auth.admin.updateUserById(person.id, { password });
-  if (error) return false;
+  if (error) return (log(`could not save: ${error.message}`), false);
+  log("accepted");
   await sb.from("people").update({ must_change_password: false }).eq("id", person.id);
   await sb.from("audit_log").insert({ actor_id: person.id, action: "password_from_bidii", subject_type: "person", subject_id: person.id });
   return true;

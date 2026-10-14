@@ -6,10 +6,11 @@ import { ACCOUNT_CHECK_AUDIENCE, PASSWORD_CHECK_AUDIENCE, signBidiiToken } from 
  * they sign in here, so they keep the password they already have. Any
  * problem reaching Bidii counts as "no".
  */
-export async function checkBidiiPassword(email: string, password: string): Promise<boolean> {
-  const secret = process.env.TD_SSO_SECRET;
-  const bidii = process.env.BIDII_URL?.replace(/\/$/, "");
-  if (!secret || !bidii || !email || !password) return false;
+export async function checkBidiiPassword(email: string, password: string): Promise<string> {
+  const secret = process.env.TD_SSO_SECRET?.trim();
+  const bidii = process.env.BIDII_URL?.trim().replace(/\/$/, "");
+  if (!secret || !bidii) return "not set up (TD_SSO_SECRET or BIDII_URL missing)";
+  if (!email || !password) return "no email or password";
   try {
     const res = await fetch(`${bidii}/api/auth/td-verify`, {
       method: "POST",
@@ -18,9 +19,12 @@ export async function checkBidiiPassword(email: string, password: string): Promi
       signal: AbortSignal.timeout(8000),
       cache: "no-store",
     });
-    return res.ok && (await res.json()).ok === true;
-  } catch {
-    return false;
+    if (res.status === 401) return `Bidii refused this app (shared secret differs) at ${bidii}`;
+    if (res.status === 429) return "Bidii locked this email after too many wrong passwords; wait 15 minutes";
+    if (!res.ok) return `Bidii answered ${res.status} at ${bidii}`;
+    return (await res.json()).ok === true ? "ok" : "Bidii says the password is wrong";
+  } catch (e) {
+    return `could not reach Bidii at ${bidii}: ${(e as Error).message}`;
   }
 }
 

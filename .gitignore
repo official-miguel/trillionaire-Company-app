@@ -46,3 +46,5 @@ next-env.d.ts
 
 # Local lists of people (emails, phones) for scripts/seed-people.mjs
 *.local.json
+*.local.sql
+*.local.txt
