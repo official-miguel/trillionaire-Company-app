@@ -5,7 +5,7 @@ import { DEMO_VIEWERS } from "@/lib/data/demo-data";
 import type { Permission, Role } from "@/lib/data/types";
 import { isDemo } from "@/lib/demo";
 import { listPeople, type PersonRow } from "@/lib/people";
-import { addPersonAction, resetPasswordAction, setActiveAction } from "./actions";
+import { addPersonAction, resetPasswordAction, setActiveAction, setRolesAction } from "./actions";
 
 export const metadata = { title: "People" };
 
@@ -34,6 +34,7 @@ const PERMISSION_LABELS: Record<Permission, string> = {
 const MESSAGES: Record<string, string> = {
   added: "Added. Give them their temporary password; they will choose their own when they first sign in.",
   reset: "Password reset. They will choose a new one when they next sign in.",
+  roles: "Roles saved. They apply from the person's next page.",
   demo: "Demo mode: nothing was saved.",
 };
 
@@ -109,7 +110,7 @@ export default async function PeoplePage({ searchParams }: { searchParams: Promi
                 <div className="flex flex-wrap items-start justify-between gap-3">
                   <div className="min-w-0">
                     <p className="font-semibold">
-                      {p.name} {!p.active && <Badge tone="red">Switched off</Badge>} {p.active && p.mustChangePassword && <Badge tone="amber">Hasn&apos;t signed in yet</Badge>}
+                      {p.name} {p.isOwner && <Badge tone="ink">Owner</Badge>} {!p.active && <Badge tone="red">Switched off</Badge>} {p.active && p.mustChangePassword && <Badge tone="amber">Hasn&apos;t signed in yet</Badge>}
                     </p>
                     <p className="text-sm text-muted">
                       {ROLES.find((r) => r.value === p.role)?.label ?? "No role"} · {p.email}
@@ -136,6 +137,26 @@ export default async function PeoplePage({ searchParams }: { searchParams: Promi
                       );
                     })}
                   </div>
+                )}
+                {p.active && !p.isOwner && p.id !== viewer.id && (
+                  <details className="mt-3">
+                    <summary className="cursor-pointer text-sm text-muted hover:text-ink">Edit roles</summary>
+                    <form action={setRolesAction} className="mt-2 flex flex-col gap-2 rounded-2xl bg-surface p-3">
+                      <input type="hidden" name="id" value={p.id} />
+                      <input type="hidden" name="ledgers" value={p.role === "td_cofounder" || p.role === "accountant" ? "company,bidii" : "bidii"} />
+                      {(Object.keys(PERMISSION_LABELS) as Permission[]).map((perm) => (
+                        <label key={perm} className="flex items-center gap-2.5 text-sm text-ink/80">
+                          <input type="checkbox" name={`perm_${perm}`} defaultChecked={p.permissions.some((x) => x.permission === perm)} className="h-4 w-4 accent-[#32cd32]" />
+                          {PERMISSION_LABELS[perm]}
+                        </label>
+                      ))}
+                      <label className="mt-1 flex items-center gap-2 text-sm">
+                        Approval limit (KES)
+                        <input name="approver_limit" type="number" min="0" step="1000" defaultValue={p.permissions.find((x) => x.permission === "approver")?.limitKes ?? 20000} className="w-32 rounded-full border border-line bg-white px-3 py-1.5" />
+                      </label>
+                      <button className="mt-1 self-start rounded-full bg-ink px-4 py-2 text-sm font-semibold text-white">Save roles</button>
+                    </form>
+                  </details>
                 )}
                 {p.active && p.id !== viewer.id && (
                   <details className="mt-3">
@@ -166,6 +187,7 @@ function demoPeople(): PersonRow[] {
     role: v.role,
     shareClass: v.shareClass,
     active: true,
+    isOwner: v.isOwner,
     mustChangePassword: v.slug === "larmeck",
     permissions: Object.entries(v.permissions).flatMap(([ledgerId, list]) => list.map((permission) => ({ ledgerId, permission, limitKes: permission === "approver" ? v.approverLimit : null }))),
   }));

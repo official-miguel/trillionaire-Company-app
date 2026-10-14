@@ -68,10 +68,12 @@ export const getViewer = cache(async (): Promise<Viewer> => {
     // Bidii decides who is a super admin; the button shows only if it says so.
     bidiiSuperAdmin: await hasBidiiAccount(person.email),
     mustChangePassword: person.must_change_password,
+    isOwner: person.is_owner === true,
   };
 });
 
 export function can(viewer: Viewer, ledgerId: string, permission: Permission) {
+  if (viewer.isOwner) return true;
   return viewer.ledgers.includes(ledgerId) && (viewer.permissions[ledgerId] ?? []).includes(permission);
 }
 
@@ -314,6 +316,46 @@ export async function getComingUp(): Promise<{ items: ComingUpItem[]; warnings: 
   }
   items.sort((a, b) => a.date.localeCompare(b.date));
   return { items: items.slice(0, 8), warnings };
+}
+
+export const SETTING_LABELS: Record<string, string> = {
+  split: "the split of the leftover",
+  weights: "the team pool weights",
+  commission: "the commission rates",
+  fee: "the Trillionaire Designs fee",
+  reserve: "the reserve target",
+  missCuts: "the task pay cuts",
+  requests: "the request limit",
+  payout: "the payout settings",
+  pricing: "the school prices",
+  shares: "the share parts",
+};
+
+export interface SettingChange {
+  label: string;
+  who: string;
+  reason: string;
+  at: string;
+}
+
+/** Changes made in Settings recently, newest first (everyone is told about them). */
+export async function getRecentChanges(days = 30): Promise<SettingChange[]> {
+  if (isDemo()) return [];
+  const sb = await supabaseServer();
+  const since = new Date(Date.now() - days * 86_400_000).toISOString();
+  const { data } = await sb
+    .from("settings")
+    .select("key, reason, created_at, people:proposed_by(full_name)")
+    .not("proposed_by", "is", null)
+    .gte("created_at", since)
+    .order("created_at", { ascending: false })
+    .limit(10);
+  return (data ?? []).map((r) => ({
+    label: SETTING_LABELS[r.key] ?? r.key,
+    who: (r.people as unknown as { full_name: string } | null)?.full_name ?? "Someone",
+    reason: r.reason,
+    at: r.created_at,
+  }));
 }
 
 /** People who hold approval permissions on a ledger. */

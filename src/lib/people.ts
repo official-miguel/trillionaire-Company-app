@@ -25,6 +25,7 @@ export interface PersonRow {
   role: Role | null;
   shareClass: "A" | "B" | null;
   active: boolean;
+  isOwner: boolean;
   mustChangePassword: boolean;
   permissions: { ledgerId: string; permission: Permission; limitKes: number | null }[];
 }
@@ -80,6 +81,7 @@ export async function listPeople(): Promise<PersonRow[]> {
     role: (memberships ?? []).find((m) => m.person_id === p.id)?.role ?? null,
     shareClass: p.share_class,
     active: p.active,
+    isOwner: p.is_owner === true,
     mustChangePassword: p.must_change_password,
     permissions: (perms ?? [])
       .filter((x) => x.person_id === p.id)

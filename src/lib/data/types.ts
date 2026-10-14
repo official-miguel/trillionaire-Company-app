@@ -25,6 +25,8 @@ export interface Viewer {
   ledgers: string[];
   permissions: Record<string, Permission[]>;
   approverLimit: number | null;
+  /** The owner can do everything; others only what the owner allows. */
+  isOwner: boolean;
   /** Has an active super admin account in Bidii (Bidii decides). */
   bidiiSuperAdmin: boolean;
   /** True until the person replaces the temporary password an admin gave them. */

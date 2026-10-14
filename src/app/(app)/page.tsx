@@ -1,7 +1,7 @@
 import Link from "next/link";
 import { Badge, Card, Money } from "@/components/ui";
 import { AlertIcon, ArrowIcon } from "@/components/icons";
-import { getComingUp, getMonthToDate, getPots, getSettings, getViewer } from "@/lib/data/queries";
+import { getComingUp, getMonthToDate, getPots, getRecentChanges, getSettings, getViewer } from "@/lib/data/queries";
 import { closeMonth, POT_LABELS, type PotKey } from "@/lib/money/monthEnd";
 import { daysUntil, kes, shortDate } from "@/lib/format";
 
@@ -10,12 +10,13 @@ export const metadata = { title: "Home" };
 const POT_COLORS = ["#32cd32", "#0a0a0a", "#9be89b", "#5c5c5c", "#c9f2c9", "#a3a3a3"];
 
 export default async function HomePage() {
-  const [viewer, month, pots, { money, commission }, coming] = await Promise.all([
+  const [viewer, month, pots, { money, commission }, coming, changes] = await Promise.all([
     getViewer(),
     getMonthToDate(),
     getPots(),
     getSettings(),
     getComingUp(),
+    getRecentChanges(7),
   ]);
 
   const today = closeMonth(month, money);
@@ -35,6 +36,14 @@ export default async function HomePage() {
         </div>
         <Badge tone="green">{daysUntil(payoutDate)} days to payout, {shortDate(payoutDate)}</Badge>
       </div>
+
+      {changes.length > 0 && (
+        <Link href="/settings" className="block rounded-2xl border border-line bg-white px-4 py-3 text-sm hover:border-lime">
+          <span className="font-medium">{changes[0].who.split(" ")[0]} changed {changes[0].label}</span>
+          <span className="text-muted"> · {shortDate(changes[0].at)} · {changes[0].reason}</span>
+          {changes.length > 1 && <span className="text-muted"> · and {changes.length - 1} more this week</span>}
+        </Link>
+      )}
 
       {/* 1. What I would earn today: the one dark card on the page */}
       <section className="rounded-[1.5rem] bg-ink p-6 text-white sm:p-8">

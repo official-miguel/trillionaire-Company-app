@@ -42,7 +42,7 @@ export function useReminders(events: CalEvent[]) {
           const key = `${o.key}:${before}`;
           if (at <= now.getTime() && now.getTime() - at < 10 * 60_000 && !fired.includes(key)) {
             const body = o.event.allDay ? "Today" : `${timeLabel(o.start)}${o.event.location ? ` · ${o.event.location}` : ""}`;
-            notify(o.event.title, { body, tag: key, icon: "/icons/icon-192.png" });
+            notify(o.event.title, { body, tag: key, icon: "/icons/icon-192.png", badge: "/icons/badge-96.png", requireInteraction: true });
             fired.push(key);
           }
         }

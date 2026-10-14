@@ -30,6 +30,7 @@ export const DEMO_VIEWERS: Record<string, Viewer> = {
     approverLimit: 20000,
     bidiiSuperAdmin: true,
     mustChangePassword: false,
+    isOwner: true,
   },
   romeo: {
     id: "demo-romeo",
@@ -46,6 +47,7 @@ export const DEMO_VIEWERS: Record<string, Viewer> = {
     approverLimit: 20000,
     bidiiSuperAdmin: false,
     mustChangePassword: false,
+    isOwner: false,
   },
   samuel: {
     id: "demo-samuel",
@@ -59,6 +61,7 @@ export const DEMO_VIEWERS: Record<string, Viewer> = {
     approverLimit: null,
     bidiiSuperAdmin: false,
     mustChangePassword: false,
+    isOwner: false,
   },
   larmeck: {
     id: "demo-larmeck",
@@ -72,6 +75,7 @@ export const DEMO_VIEWERS: Record<string, Viewer> = {
     approverLimit: null,
     bidiiSuperAdmin: false,
     mustChangePassword: false,
+    isOwner: false,
   },
 };
 

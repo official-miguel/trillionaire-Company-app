@@ -35,7 +35,7 @@ async function sendOnce(sub: Sub, job: Job): Promise<Outcome> {
   try {
     await webpush.sendNotification(
       { endpoint: sub.endpoint, keys: { p256dh: sub.p256dh, auth: sub.auth } },
-      JSON.stringify({ title: job.title, body: job.body, url: job.url, tag: job.id }),
+      JSON.stringify({ title: job.title, body: job.body, url: job.url, tag: job.id, kind: job.kind }),
       // A phone that is off gets it when it comes back, for up to 6 hours.
       { TTL: 6 * 3600, urgency: job.kind === "task_given" ? "normal" : "high" },
     );

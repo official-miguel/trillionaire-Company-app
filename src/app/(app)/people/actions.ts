@@ -6,6 +6,7 @@ import { can, getViewer } from "@/lib/data/queries";
 import type { Permission, Role } from "@/lib/data/types";
 import { isDemo } from "@/lib/demo";
 import { addPerson, resetPassword, setActive } from "@/lib/people";
+import { supabaseServer } from "@/lib/supabase/server";
 
 const PERMISSIONS: Permission[] = [
   "approver",
@@ -59,6 +60,25 @@ export async function addPersonAction(formData: FormData) {
   if (result.error) redirect(`/people?error=${encodeURIComponent(result.error)}`);
   revalidatePath("/people");
   redirect("/people?done=added");
+}
+
+/** Give or take away someone's roles. The database checks it is allowed. */
+export async function setRolesAction(formData: FormData) {
+  await requireAdmin();
+  if (isDemo()) redirect("/people?done=demo");
+  const id = String(formData.get("id"));
+  const ledgers = String(formData.get("ledgers") ?? "").split(",").filter(Boolean);
+  const limit = Number(formData.get("approver_limit") || 0) || null;
+  const chosen = PERMISSIONS.filter((p) => formData.get(`perm_${p}`) === "on");
+  // Each role applies in every company the person is in (adding people is company-wide).
+  const permissions = chosen.flatMap((permission) =>
+    (permission === "people_admin" ? ["company"] : ledgers).map((ledgerId) => ({ ledgerId, permission, limitKes: permission === "approver" ? limit : null })),
+  );
+  const sb = await supabaseServer();
+  const { error } = await sb.rpc("set_permissions", { p_person: id, p_permissions: permissions });
+  if (error) redirect(`/people?error=${encodeURIComponent(error.message)}`);
+  revalidatePath("/people");
+  redirect("/people?done=roles");
 }
 
 export async function setActiveAction(formData: FormData) {

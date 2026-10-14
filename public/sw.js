@@ -3,7 +3,7 @@
 //  • Pages are fetched fresh when online and kept as a copy; offline, the last
 //    copy is shown (the calendar then reads its data from the device).
 //  • Signing out clears the kept pages.
-const VERSION = "v2";
+const VERSION = "v3";
 const PAGES = `td-pages-${VERSION}`;
 const ASSETS = `td-assets-${VERSION}`;
 const OFFLINE_HTML = `<!doctype html><html lang="en"><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><title>Offline</title>
@@ -87,20 +87,34 @@ self.addEventListener("push", (event) => {
   } catch {
     data = { title: event.data ? event.data.text() : "Reminder" };
   }
+  // Reminders and tasks pop up over whatever is on screen and stay there
+  // until dismissed (on a laptop), with a buzz on phones. Notices about
+  // setting changes are quieter.
+  const important = data.kind !== "notice";
   event.waitUntil(
     self.registration.showNotification(data.title || "Reminder", {
       body: data.body || "",
       tag: data.tag,
+      renotify: Boolean(data.tag),
+      requireInteraction: important,
+      silent: false,
+      vibrate: important ? [250, 120, 250, 120, 400] : [150],
+      timestamp: Date.now(),
       icon: "/icons/icon-192.png",
-      badge: "/icons/icon-192.png",
+      badge: "/icons/badge-96.png",
+      actions: [
+        { action: "open", title: "Open" },
+        { action: "dismiss", title: "Dismiss" },
+      ],
       data: { url: data.url || "/calendar" },
     }),
   );
 });
 
-// Tapping a reminder opens the calendar (or the page it points to).
+// Tapping a reminder (or "Open") opens the calendar or the page it points to.
 self.addEventListener("notificationclick", (event) => {
   event.notification.close();
+  if (event.action === "dismiss") return;
   const target = (event.notification.data && event.notification.data.url) || "/calendar";
   event.waitUntil(
     self.clients.matchAll({ type: "window", includeUncontrolled: true }).then((list) => {

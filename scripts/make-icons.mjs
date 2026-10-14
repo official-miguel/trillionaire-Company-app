@@ -25,3 +25,13 @@ const out = [
 ];
 for (const [file, size, pad] of out) await sharp(Buffer.from(mark(size, pad))).png().toFile(file);
 console.log("icons written");
+
+// Status-bar icon for notifications (Android shows only its shape, so it is
+// white on transparent).
+const badge = `<svg xmlns="http://www.w3.org/2000/svg" width="96" height="96" viewBox="0 0 96 96">
+  <g fill="none" stroke="#ffffff" stroke-width="9" stroke-linecap="round" stroke-linejoin="round">
+    <path d="M30 26 L10 48 L30 70"/><path d="M56 18 L40 78"/><path d="M66 26 L86 48 L66 70"/>
+  </g>
+</svg>`;
+await sharp(Buffer.from(badge)).png().toFile("public/icons/badge-96.png");
+console.log("badge written");
