@@ -43,3 +43,6 @@ next-env.d.ts
 
 # Supabase CLI temporary files
 /supabase/.temp/
+
+# Local lists of people (emails, phones) for scripts/seed-people.mjs
+*.local.json

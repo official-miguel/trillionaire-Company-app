@@ -38,7 +38,7 @@ export function approvalNeed(req: RequestFacts, approvers: Approver[], singleLim
   const names = eligible.map((a) => a.name.split(" ")[0]);
 
   let summary: string;
-  if (eligible.length < needed) summary = "Nobody can approve this yet. Ask Miguel or Romeo to check the approval roles in Settings.";
+  if (eligible.length < needed) summary = "Nobody can approve this yet. Contact Trillionaire Designs support to check the approval roles.";
   else if (twoSigners) summary = `This needs both ${names.slice(0, 2).join(" and ")} to approve.`;
   else summary = `This sends your request to ${names.join(" or ")}.`;
 

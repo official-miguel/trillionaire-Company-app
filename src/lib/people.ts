@@ -3,6 +3,7 @@
 // first sign-in, and nobody is ever deleted.
 import "server-only";
 import { supabaseAdmin } from "@/lib/supabase/admin";
+import { checkBidiiPassword } from "@/lib/bidii";
 import type { Permission, Role } from "@/lib/data/types";
 
 export interface NewPerson {
@@ -145,6 +146,24 @@ export async function addPerson(actorId: string, p: NewPerson): Promise<{ error?
     details: { name: p.name, email, role: p.role, permissions: allowed },
   });
   return {};
+}
+
+/**
+ * First sign-in with a Bidii password: for someone who has never chosen a
+ * password here, if Bidii confirms the password they typed, it becomes their
+ * password here too. After that this app keeps it, and Bidii follows.
+ */
+export async function adoptBidiiPassword(email: string, password: string): Promise<boolean> {
+  const sb = supabaseAdmin();
+  const { data: person } = await sb.from("people").select("id, active, must_change_password").eq("email", email.trim().toLowerCase()).maybeSingle();
+  if (!person || !person.active || !person.must_change_password) return false;
+  if (!(await checkBidiiPassword(email, password))) return false;
+
+  const { error } = await sb.auth.admin.updateUserById(person.id, { password });
+  if (error) return false;
+  await sb.from("people").update({ must_change_password: false }).eq("id", person.id);
+  await sb.from("audit_log").insert({ actor_id: person.id, action: "password_from_bidii", subject_type: "person", subject_id: person.id });
+  return true;
 }
 
 /** Switching someone off blocks sign-in at once; their records stay. */

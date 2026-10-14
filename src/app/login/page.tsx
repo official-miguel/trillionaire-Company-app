@@ -3,24 +3,30 @@ import { Logo } from "@/components/Logo";
 import { ClearOfflinePages, InstallApp } from "@/components/InstallApp";
 import { isDemo } from "@/lib/demo";
 import { supabaseServer } from "@/lib/supabase/server";
+import { adoptBidiiPassword } from "@/lib/people";
 
 export const metadata = { title: "Sign in" };
 
 async function signIn(formData: FormData) {
   "use server";
+  const email = String(formData.get("email") ?? "").trim().toLowerCase();
+  const password = String(formData.get("password") ?? "");
   const sb = await supabaseServer();
-  const { error } = await sb.auth.signInWithPassword({
-    email: String(formData.get("email") ?? "").trim(),
-    password: String(formData.get("password") ?? ""),
-  });
-  if (error) redirect("/login?error=wrong");
-  redirect("/");
+  const { error } = await sb.auth.signInWithPassword({ email, password });
+  if (!error) redirect("/");
+
+  // First time here for a Bidii super admin: their Bidii password works too.
+  if (await adoptBidiiPassword(email, password)) {
+    const again = await sb.auth.signInWithPassword({ email, password });
+    if (!again.error) redirect("/");
+  }
+  redirect("/login?error=wrong");
 }
 
 const ERRORS: Record<string, string> = {
-  wrong: "That email and password don't match. Try again, or ask Miguel or Romeo to reset your password.",
-  "no-profile": "Your sign-in works, but you haven't been added to the app yet. Ask Miguel or Romeo to add you.",
-  "switched-off": "Your account has been switched off. Ask Miguel or Romeo if you think this is a mistake.",
+  wrong: "That email and password don't match. Try again, or contact Trillionaire Designs support to reset your password.",
+  "no-profile": "Your sign-in works, but you haven't been added to the app yet. Contact Trillionaire Designs support.",
+  "switched-off": "Your account has been switched off. Contact Trillionaire Designs support if you think this is a mistake.",
 };
 
 export default async function LoginPage({ searchParams }: { searchParams: Promise<{ error?: string }> }) {
