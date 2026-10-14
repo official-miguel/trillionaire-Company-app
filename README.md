@@ -1,36 +1,48 @@
-This is a [Next.js](https://nextjs.org) project bootstrapped with [`create-next-app`](https://nextjs.org/docs/app/api-reference/cli/create-next-app).
+# trillionaire-Company-app
 
-## Getting Started
+An app that helps govern Trillionaire Designs: ledgers for every shilling, pay
+and approvals for Bidii and future products, and a calendar for everyday
+planning that works offline and can be installed from the browser.
 
-First, run the development server:
+## What it does
+
+- **Money**: a ledger per product and one for the company; nothing is ever
+  deleted, and every change keeps the old value, who made it and why.
+- **Month-end**: splits Bidii's leftover into the team pool, owners' payout,
+  Trillionaire Designs fee, growth, product and reserve, as the shareholders'
+  agreements set out.
+- **Requests and approvals**: anyone asks for money; approvers approve by
+  permission, and nobody approves their own request.
+- **Schools, invoices and commission**: invoices follow each school's package
+  from the Bidii Pricing Guide; commission is 3% (team) or 5% (outside
+  referrers) of what a school pays in its first year.
+- **Calendar**: type events the way you say them, plan tasks into free time,
+  give tasks to people, works offline, installable, with push reminders.
+- **Roles**: each person sees only the companies they are in.
+
+## Stack
+
+Next.js 15, Tailwind CSS 4, Supabase (Postgres with row level security,
+Auth, Edge Functions, pg_cron), Vitest.
+
+## Running it
 
 ```bash
-npm run dev
-# or
-yarn dev
-# or
-pnpm dev
-# or
-bun dev
+npm install
+npm run dev:demo        # sample data, no database needed (port 3100)
+npm run dev             # real data from Supabase
+npm test                # money rules, calendar, reminders and security
 ```
 
-Open [http://localhost:3000](http://localhost:3000) with your browser to see the result.
+Secrets live in `.env.local` and `supabase/functions/.env`, which git
+ignores. Never commit them.
 
-You can start editing the page by modifying `app/page.tsx`. The page auto-updates as you edit the file.
+## Setting up Supabase
 
-This project uses [`next/font`](https://nextjs.org/docs/app/building-your-application/optimizing/fonts) to automatically optimize and load [Geist](https://vercel.com/font), a new font family for Vercel.
-
-## Learn More
-
-To learn more about Next.js, take a look at the following resources:
-
-- [Next.js Documentation](https://nextjs.org/docs) - learn about Next.js features and API.
-- [Learn Next.js](https://nextjs.org/learn) - an interactive Next.js tutorial.
-
-You can check out [the Next.js GitHub repository](https://github.com/vercel/next.js) - your feedback and contributions are welcome!
-
-## Deploy on Vercel
-
-The easiest way to deploy your Next.js app is to use the [Vercel Platform](https://vercel.com/new?utm_medium=default-template&filter=next.js&utm_source=create-next-app&utm_campaign=create-next-app-readme) from the creators of Next.js.
-
-Check out our [Next.js deployment documentation](https://nextjs.org/docs/app/building-your-application/deploying) for more details.
+```bash
+npm run migrate                                  # needs SUPABASE_DB_URL in .env.local
+npm run create-owner -- --name "Full Name" --email you@example.com --password "Temporary1"
+npx supabase login
+npx supabase secrets set --env-file supabase/functions/.env
+npx supabase functions deploy send-reminders --no-verify-jwt
+```
