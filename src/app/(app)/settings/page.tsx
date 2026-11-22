@@ -1,4 +1,6 @@
+import Link from "next/link";
 import { Badge, Card, PageHeader } from "@/components/ui";
+import { ArrowIcon } from "@/components/icons";
 import { can, getRecentChanges, getSettings, getViewer } from "@/lib/data/queries";
 import { POT_LABELS, type PotKey } from "@/lib/money/monthEnd";
 import { kes, shortDate } from "@/lib/format";
@@ -47,6 +49,16 @@ export default async function SettingsPage({ searchParams }: { searchParams: Pro
       {message && <p className={`mb-5 rounded-2xl px-4 py-3 text-sm ${message[1] === "ok" ? "bg-lime-soft" : "bg-warn-soft text-warn"}`}>{message[0]}</p>}
 
       <div className="flex flex-col gap-5">
+        {canEdit && (
+          <Link href="/settings/mpesa" className="card flex items-center justify-between gap-4 p-5 transition hover:border-lime sm:p-6">
+            <span>
+              <span className="block font-semibold">M-PESA / Daraja integration</span>
+              <span className="mt-0.5 block text-sm text-muted">Safaricom keys, shortcode, connection test and automatic payment reconciliation.</span>
+            </span>
+            <ArrowIcon className="h-5 w-5 shrink-0 text-lime-deep" />
+          </Link>
+        )}
+
         {changes.length > 0 && (
           <Card title="Recent changes">
             <ul className="divide-y divide-line">

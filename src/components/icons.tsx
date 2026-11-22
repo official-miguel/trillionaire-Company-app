@@ -53,6 +53,12 @@ export const LogoutIcon = ({ className }: P) => (
 export const PeopleIcon = ({ className }: P) => (
   <svg {...base(className)}><circle cx="9" cy="8" r="3" /><path d="M3.5 19c.9-3 3-4.5 5.5-4.5s4.6 1.5 5.5 4.5M16 5.5a3 3 0 0 1 0 5.5M17.5 14.5c1.6.5 2.6 2 3 4.5" /></svg>
 );
+export const BellIcon = ({ className }: P) => (
+  <svg {...base(className)}><path d="M6 16V11a6 6 0 0 1 12 0v5l1.5 2h-15z" /><path d="M10 20.5a2.2 2.2 0 0 0 4 0" /></svg>
+);
+export const PhoneMoneyIcon = ({ className }: P) => (
+  <svg {...base(className)}><rect x="6" y="2.5" width="12" height="19" rx="2.5" /><path d="M10 18.5h4M14 7.5h-3a1.5 1.5 0 0 0 0 3h2a1.5 1.5 0 0 1 0 3h-3M12 6.5v1M12 13.5v1" /></svg>
+);
 export const CalendarIcon = ({ className }: P) => (
   <svg {...base(className)}><rect x="3.5" y="5" width="17" height="15" rx="2.5" /><path d="M3.5 10h17M8 3v4M16 3v4" /></svg>
 );
