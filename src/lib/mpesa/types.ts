@@ -33,6 +33,22 @@ export interface Payment {
   invoiceId: string | null;
   invoiceNumber: string | null;
   note: string | null;
+  /** Set by withLabels() for payments nobody matched: the custom topic or category chosen by hand. */
+  label?: PaymentLabel | null;
+  /** Set by withLabels(): "the same account number was matched by hand to this school before". */
+  suggestion?: PaymentSuggestion | null;
+}
+
+export interface PaymentLabel {
+  kind: "topic" | "category";
+  id: string;
+  label: string;
+  via: "assigned" | "remembered";
+}
+
+export interface PaymentSuggestion {
+  schoolId: string;
+  schoolName: string;
 }
 
 export interface PaymentDetail extends Payment {
