@@ -4,6 +4,9 @@ import { Badge, Card, Empty, Money, PageHeader } from "@/components/ui";
 import { can, getLedgerLines, getPots, getViewer } from "@/lib/data/queries";
 import type { LineType } from "@/lib/data/types";
 import { kes, shortDate } from "@/lib/format";
+import { TopicView } from "@/components/topics/TopicView";
+import { listTopicsDb } from "@/lib/topics/store";
+import type { Topic } from "@/lib/topics/types";
 
 export const metadata = { title: "Money" };
 
@@ -29,6 +32,19 @@ const STATUS = {
 
 export default async function MoneyPage({ searchParams }: { searchParams: Promise<{ ledger?: string; pot?: string; type?: string }> }) {
   const [viewer, params, pots] = await Promise.all([getViewer(), searchParams, getPots()]);
+  // The owner's custom topics (the "+" tab). If the table isn't there yet the "+" still shows and says so on create.
+  const topicList: Topic[] = await listTopicsDb().catch((e) => (console.error("[topics] list failed", (e as Error).message), []));
+  const topicTabs = topicList.map(({ id, name, icon, color }) => ({ id, name, icon, color }));
+  if (params.ledger?.startsWith("topic:")) {
+    const topic = topicList.find((t) => `topic:${t.id}` === params.ledger);
+    return (
+      <>
+        <PageHeader title="Money" subtitle="Your own topics: track anything, set it up right here." />
+        <LedgerSwitch key={params.ledger} ledgers={viewer.ledgers} current={topic ? params.ledger : "bidii"} names={LEDGER_NAMES} topics={topicTabs} />
+        {topic ? <TopicView key={topic.id} initial={topic} /> : <Empty>That topic no longer exists.</Empty>}
+      </>
+    );
+  }
   const ledgerId = params.ledger && viewer.ledgers.includes(params.ledger) ? params.ledger : (params.pot?.split(".")[0] ?? "bidii");
   const visible = viewer.ledgers.includes(ledgerId) ? ledgerId : "bidii";
   let lines = await getLedgerLines(visible);
@@ -42,7 +58,7 @@ export default async function MoneyPage({ searchParams }: { searchParams: Promis
     <>
       <PageHeader title="Money" subtitle="Every shilling is a line in a ledger. Nothing is deleted: a change keeps the old value, who made it and why." />
 
-      {viewer.ledgers.length > 1 && <LedgerSwitch key={visible} ledgers={viewer.ledgers} current={visible} names={LEDGER_NAMES} />}
+      <LedgerSwitch key={visible} ledgers={viewer.ledgers} current={visible} names={LEDGER_NAMES} topics={topicTabs} />
 
       <div className="mb-5 grid grid-cols-2 gap-3 sm:grid-cols-3 lg:grid-cols-5">
         {ledgerPots.map((p) => (
