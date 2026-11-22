@@ -18,6 +18,11 @@ export function longDate(iso: string) {
   return asInstant(iso).toLocaleDateString("en-KE", { day: "numeric", month: "long", year: "numeric", timeZone: TZ });
 }
 
+/** "6 Nov 2026, 14:05" in Nairobi time, for a full timestamp. */
+export function dateTime(iso: string) {
+  return new Date(iso).toLocaleString("en-KE", { day: "numeric", month: "short", year: "numeric", hour: "2-digit", minute: "2-digit", hour12: false, timeZone: TZ });
+}
+
 export function todayIso() {
   return new Date().toLocaleDateString("en-CA", { timeZone: TZ });
 }

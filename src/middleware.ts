@@ -32,6 +32,7 @@ export async function middleware(request: NextRequest) {
 }
 
 export const config = {
-  // The service worker and app manifest must load without signing in.
-  matcher: ["/((?!_next/static|_next/image|favicon.ico|sw\\.js|manifest\\.webmanifest|.*\\.(?:svg|png|jpg|jpeg|webp)$).*)"],
+  // The service worker and app manifest must load without signing in, and
+  // Safaricom's M-PESA callbacks (which check their own secret) never sign in.
+  matcher: ["/((?!_next/static|_next/image|favicon.ico|sw\\.js|manifest\\.webmanifest|api/payments/c2b/|.*\\.(?:svg|png|jpg|jpeg|webp)$).*)"],
 };

@@ -1,6 +1,7 @@
 import { Sidebar } from "@/components/Sidebar";
 import { redirect } from "next/navigation";
 import { can, getViewer } from "@/lib/data/queries";
+import { getNotifications } from "@/lib/data/notifications";
 import { DEMO_VIEWERS } from "@/lib/data/demo-data";
 import { isDemo } from "@/lib/demo";
 import { setDemoViewer, signOut } from "../actions";
@@ -15,6 +16,7 @@ const ROLE_LABELS = {
 export default async function AppLayout({ children }: { children: React.ReactNode }) {
   const viewer = await getViewer();
   if (viewer.mustChangePassword) redirect("/change-password");
+  const notifications = await getNotifications().catch(() => ({ items: [], unread: 0 }));
   const demo = isDemo()
     ? {
         current: viewer.slug,
@@ -25,7 +27,7 @@ export default async function AppLayout({ children }: { children: React.ReactNod
 
   return (
     <div className="flex min-h-screen flex-col lg:flex-row">
-      <Sidebar name={viewer.name} roleLabel={ROLE_LABELS[viewer.role]} bidiiSuperAdmin={viewer.bidiiSuperAdmin} peopleAdmin={can(viewer, "company", "people_admin")} demo={demo} signOut={signOut} />
+      <Sidebar name={viewer.name} roleLabel={ROLE_LABELS[viewer.role]} bidiiSuperAdmin={viewer.bidiiSuperAdmin} peopleAdmin={can(viewer, "company", "people_admin")} payments={viewer.isOwner || viewer.ledgers.includes("bidii")} notifications={notifications} demo={demo} signOut={signOut} />
       <main className="min-w-0 flex-1 bg-surface/60 px-4 py-6 sm:px-8 sm:py-10">
         <div className="mx-auto max-w-6xl">{children}</div>
       </main>

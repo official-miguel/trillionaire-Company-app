@@ -6,6 +6,7 @@ import { useEffect, useState } from "react";
 import { Logo } from "./Logo";
 import { InstallApp } from "./InstallApp";
 import { turnOffPush } from "@/lib/calendar/push";
+import { NotificationBell, useNotifications, type BellState } from "./NotificationBell";
 import {
   CalendarIcon,
   CloseIcon,
@@ -17,6 +18,7 @@ import {
   RequestIcon,
   SchoolIcon,
   PeopleIcon,
+  PhoneMoneyIcon,
   SettingsIcon,
   StatementIcon,
 } from "./icons";
@@ -25,6 +27,7 @@ const NAV = [
   { href: "/", label: "Home", Icon: HomeIcon },
   { href: "/calendar", label: "Calendar", Icon: CalendarIcon },
   { href: "/money", label: "Money", Icon: LedgerIcon },
+  { href: "/payments", label: "M-PESA payments", Icon: PhoneMoneyIcon, needs: "payments" },
   { href: "/requests", label: "Requests", Icon: RequestIcon },
   { href: "/schools", label: "Schools & invoices", Icon: SchoolIcon },
   { href: "/statements", label: "Statements", Icon: StatementIcon },
@@ -36,13 +39,17 @@ export interface SidebarProps {
   roleLabel: string;
   bidiiSuperAdmin: boolean;
   peopleAdmin: boolean;
+  /** Can see M-PESA payments (the ledger they pay into). */
+  payments: boolean;
+  notifications: BellState;
   demo?: { current: string; options: { slug: string; label: string }[]; action: (formData: FormData) => void };
   signOut: () => void;
 }
 
-export function Sidebar({ name, roleLabel, bidiiSuperAdmin, peopleAdmin, demo, signOut }: SidebarProps) {
+export function Sidebar({ name, roleLabel, bidiiSuperAdmin, peopleAdmin, payments, notifications, demo, signOut }: SidebarProps) {
   const pathname = usePathname();
   const [open, setOpen] = useState(false);
+  const bell = useNotifications(notifications);
   // The tapped item lights up at once, before the page has finished loading.
   const [tapped, setTapped] = useState<string | null>(null);
   useEffect(() => setTapped(null), [pathname]);
@@ -51,7 +58,7 @@ export function Sidebar({ name, roleLabel, bidiiSuperAdmin, peopleAdmin, demo, s
 
   const nav = (
     <nav className="flex flex-col gap-1" aria-label="Main">
-      {[...NAV, ...(peopleAdmin ? [{ href: "/people", label: "People", Icon: PeopleIcon }] : [])].map(({ href, label, Icon }) => (
+      {[...NAV.filter((n) => n.needs !== "payments" || payments), ...(peopleAdmin ? [{ href: "/people", label: "People", Icon: PeopleIcon }] : [])].map(({ href, label, Icon }) => (
         <Link
           key={href}
           href={href}
@@ -129,14 +136,17 @@ export function Sidebar({ name, roleLabel, bidiiSuperAdmin, peopleAdmin, demo, s
       {/* Phone: top bar with a menu sheet */}
       <header className="sticky top-0 z-40 flex items-center justify-between border-b border-line bg-white/90 px-4 py-3 backdrop-blur lg:hidden">
         <Logo />
-        <button
-          onClick={() => setOpen(true)}
-          className="rounded-full p-2 text-ink"
-          aria-label="Open menu"
-          aria-expanded={open}
-        >
-          <MenuIcon className="w-6 h-6" />
-        </button>
+        <div className="flex items-center gap-1">
+          <NotificationBell bell={bell} placement="bar" />
+          <button
+            onClick={() => setOpen(true)}
+            className="rounded-full p-2 text-ink"
+            aria-label="Open menu"
+            aria-expanded={open}
+          >
+            <MenuIcon className="w-6 h-6" />
+          </button>
+        </div>
       </header>
       {open && (
         <div className="fixed inset-0 z-50 lg:hidden">
@@ -156,8 +166,9 @@ export function Sidebar({ name, roleLabel, bidiiSuperAdmin, peopleAdmin, demo, s
 
       {/* Laptop: fixed left menu */}
       <aside className="sticky top-0 hidden h-screen w-64 shrink-0 flex-col gap-8 border-r border-line bg-white px-4 py-6 lg:flex">
-        <div className="px-3">
+        <div className="flex items-center justify-between gap-2 pl-3">
           <Logo />
+          <NotificationBell bell={bell} placement="menu" />
         </div>
         <div className="flex-1 overflow-y-auto">{nav}</div>
         {footer}

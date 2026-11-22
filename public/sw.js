@@ -89,8 +89,8 @@ self.addEventListener("push", (event) => {
   }
   // Reminders and tasks pop up over whatever is on screen and stay there
   // until dismissed (on a laptop), with a buzz on phones. Notices about
-  // setting changes are quieter.
-  const important = data.kind !== "notice";
+  // setting changes and M-PESA payments are quieter.
+  const important = data.kind !== "notice" && data.kind !== "payment";
   event.waitUntil(
     self.registration.showNotification(data.title || "Reminder", {
       body: data.body || "",
