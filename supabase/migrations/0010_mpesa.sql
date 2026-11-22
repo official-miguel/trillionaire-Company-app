@@ -4,7 +4,7 @@
 --    callback address live in Supabase Vault; this table keeps only their ids.
 --  • mpesa_callbacks: every confirmation exactly as Safaricom sent it, stored
 --    before anything else happens, so a payment is never lost. One that fails
---    to process is tried again every 5 minutes (0010), up to 5 times.
+--    to process is tried again every 5 minutes (0011), up to 5 times.
 --  • mpesa_transactions: one row per M-PESA receipt number. The receipt is
 --    unique, so a callback sent twice can never credit an account twice.
 --  • A matched payment becomes a 'money_in' ledger line against the school and
@@ -419,7 +419,7 @@ returns boolean language sql stable security definer set search_path = public as
                   where d.decrypted_secret = p_token);
 $$;
 
--- Every 5 minutes (0010): callbacks that failed, or were stored but never
+-- Every 5 minutes (0011): callbacks that failed, or were stored but never
 -- processed, are tried again, up to 5 times within 3 days.
 create or replace function public.mpesa_retry_callbacks()
 returns integer language plpgsql security definer set search_path = public as $$

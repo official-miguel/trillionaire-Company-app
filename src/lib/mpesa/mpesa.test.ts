@@ -6,7 +6,7 @@ import { beforeAll, describe, expect, it } from "vitest";
 import { PGlite } from "@electric-sql/pglite";
 
 let db: PGlite;
-const MIGRATIONS = ["0001_phase1", "0002_seed", "0003_request_status", "0004_calendar", "0005_reminder_helpers", "0006_push_reminders", "0008_owner", "0009_mpesa"];
+const MIGRATIONS = ["0001_phase1", "0002_seed", "0003_request_status", "0004_calendar", "0005_reminder_helpers", "0006_push_reminders", "0008_owner", "0010_mpesa", "0012_mpesa_grants"];
 const ID = {
   miguel: "00000000-0000-0000-0000-00000000000a",
   samuel: "00000000-0000-0000-0000-00000000000b",
@@ -118,6 +118,19 @@ describe("settings", () => {
     await expect(as("miguel", `select mpesa_save_config(true, 'sandbox', '600984', 'paybill', '', '', '', '')`)).rejects.toThrow(/reason/);
     await expect(as("miguel", `select mpesa_save_config(true, 'sandbox', '12', 'paybill', '', '', '', 'x')`)).rejects.toThrow(/5 to 7 digit/);
     expect(await as("samuel", "select * from mpesa_config")).toEqual([]);
+  });
+
+  it("lets only signed-in people call the M-PESA functions, and nobody the internal ones", async () => {
+    const can = async (role: string, fn: string) =>
+      (await db.query<{ ok: boolean }>(`select has_function_privilege('${role}', '${fn}', 'execute') as ok`)).rows[0].ok;
+    for (const fn of ["mpesa_save_config(boolean, text, text, text, text, text, text, text)", "mpesa_reconcile(uuid, uuid, uuid, text)", "mpesa_reverse(uuid, text)", "mpesa_retry_callback(bigint)", "mark_notifications_read(text[])"]) {
+      expect(await can("anon", fn)).toBe(false);
+      expect(await can("authenticated", fn)).toBe(true);
+    }
+    for (const fn of ["mpesa_receive(text, jsonb, text)", "mpesa_credentials()", "mpesa_set_status(uuid, text, boolean, text)", "mpesa_transaction_notice()"]) {
+      expect(await can("anon", fn)).toBe(false);
+      expect(await can("authenticated", fn)).toBe(false);
+    }
   });
 
   it("keeps the saved keys when the boxes are left blank", async () => {

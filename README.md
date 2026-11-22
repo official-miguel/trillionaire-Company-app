@@ -75,7 +75,7 @@ can see Bidii is told in the bell (and by push, through `send-reminders`).
 Set up:
 
 ```bash
-npm run migrate            # applies 0009_mpesa.sql and 0010_mpesa_schedule.sql
+npm run migrate            # applies 0010_mpesa.sql and 0011_mpesa_schedule.sql
 ```
 
 Add to `.env.local` locally and to the Vercel project's environment variables:

@@ -28,7 +28,7 @@ vi.mock("@/lib/supabase/admin", () => ({
 
 const { POST } = await import("@/app/api/payments/c2b/[token]/[kind]/route");
 
-const MIGRATIONS = ["0001_phase1", "0002_seed", "0003_request_status", "0004_calendar", "0005_reminder_helpers", "0006_push_reminders", "0008_owner", "0009_mpesa"];
+const MIGRATIONS = ["0001_phase1", "0002_seed", "0003_request_status", "0004_calendar", "0005_reminder_helpers", "0006_push_reminders", "0008_owner", "0010_mpesa", "0012_mpesa_grants"];
 const OWNER = "00000000-0000-0000-0000-00000000000a";
 const INVOICE = "30000000-0000-0000-0000-000000000001";
 let token = "";
